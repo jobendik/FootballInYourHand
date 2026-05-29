@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a7d2c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Football In Your Hand</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- The match canvas — gameplay renders here -->
+      <canvas id="game-canvas"></canvas>
+      <!-- DOM UI layers (menus, HUD overlays) mount here -->
+      <div id="ui-root"></div>
+      <!-- Lightweight loading splash, removed once boot completes -->
+      <div id="boot-splash">
+        <div class="boot-logo">⚽</div>
+        <div class="boot-title">FOOTBALL<span>IN YOUR HAND</span></div>
+        <div class="boot-bar"><div class="boot-bar-fill"></div></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

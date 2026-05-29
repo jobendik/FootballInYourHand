@@ -52,6 +52,7 @@ function makePlayer(
     isUser: false,
     sentOff: false,
     slideTimer: 0,
+    slideResolved: false,
     kickCooldown: 0,
     actionCooldown: 0,
     stunTimer: 0,

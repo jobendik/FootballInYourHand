@@ -11,6 +11,7 @@ import {
   TeamSide,
   type CardDef,
   type Difficulty,
+  type KitConfig,
   type MatchConfig,
   type OwnedCard,
   type PackDef,
@@ -254,6 +255,52 @@ export function buildOpponentSetup(
   };
 }
 
+// ───────────────────────────── Kit contrast ─────────────────────────────
+// Gameplay clarity beats kit identity: the opponent's shirt must never read close to the
+// user's. A curated palette of vivid, mutually-distinct kits is used when a preset clashes.
+
+const CONTRAST_KITS: KitConfig[] = [
+  { primary: '#e10600', secondary: '#ffffff', shorts: '#ffffff', socks: '#e10600', accent: '#111111' }, // red
+  { primary: '#ff7a00', secondary: '#111111', shorts: '#111111', socks: '#ff7a00', accent: '#ffffff' }, // orange
+  { primary: '#8e2bff', secondary: '#ffffff', shorts: '#2a0a4a', socks: '#8e2bff', accent: '#ffd23f' }, // purple
+  { primary: '#00b894', secondary: '#06342b', shorts: '#06342b', socks: '#00b894', accent: '#ffffff' }, // teal
+  { primary: '#ff2d8e', secondary: '#ffffff', shorts: '#3a0a22', socks: '#ff2d8e', accent: '#ffffff' }, // pink
+  { primary: '#ffd23f', secondary: '#111111', shorts: '#111111', socks: '#ffd23f', accent: '#111111' }, // yellow/black
+  { primary: '#101418', secondary: '#f5f5f5', shorts: '#101418', socks: '#f5f5f5', accent: '#f5f5f5' }, // black/white
+  { primary: '#1565ff', secondary: '#ffffff', shorts: '#ffffff', socks: '#1565ff', accent: '#ffd23f' }, // royal blue
+];
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace('#', '');
+  const n = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const int = parseInt(n, 16);
+  return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
+}
+
+/** Euclidean RGB distance (0..~441). */
+function colorDist(a: string, b: string): number {
+  const x = hexToRgb(a);
+  const y = hexToRgb(b);
+  return Math.hypot(x.r - y.r, x.g - y.g, x.b - y.b);
+}
+
+/** Return an away kit whose shirt is clearly distinct from the home shirt. */
+function ensureAwayContrast(home: KitConfig, away: KitConfig): KitConfig {
+  const MIN_DISTANCE = 150;
+  if (colorDist(home.primary, away.primary) >= MIN_DISTANCE) return away;
+  // Pick the curated kit whose primary is farthest from the home shirt.
+  let best = CONTRAST_KITS[0]!;
+  let bestD = -1;
+  for (const k of CONTRAST_KITS) {
+    const d = colorDist(home.primary, k.primary);
+    if (d > bestD) {
+      bestD = d;
+      best = k;
+    }
+  }
+  return { ...best };
+}
+
 export interface MatchSetupOptions {
   opponentStrength: number;
   difficulty: Difficulty;
@@ -264,9 +311,13 @@ export interface MatchSetupOptions {
 
 export function createMatchConfig(profile: Profile, opts: MatchSetupOptions): MatchConfig {
   const rng = new Rng(opts.seed ^ 0x5f3759df);
+  const home = buildUserTeamSetup(profile);
+  const away = buildOpponentSetup(opts.opponentStrength, opts.difficulty, rng, opts.opponentPresetId);
+  // Guarantee the opponent's shirt is clearly distinct from the user's.
+  away.kit = ensureAwayContrast(home.kit, away.kit);
   return {
-    home: buildUserTeamSetup(profile),
-    away: buildOpponentSetup(opts.opponentStrength, opts.difficulty, rng, opts.opponentPresetId),
+    home,
+    away,
     userSide: TeamSide.HOME,
     durationSimSeconds: MATCH.durationSimSeconds,
     durationRealSeconds: MATCH.durationRealSeconds,

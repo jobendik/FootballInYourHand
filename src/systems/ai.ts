@@ -367,9 +367,14 @@ function updateChaser(world: GameWorld, player: Player, dt: number, level: numbe
     if (owner && owner.side !== player.side) {
       const gap = dist(owner.position, player.position);
       if (gap < player.radius + owner.radius + 12 && player.slideTimer <= 0 && player.actionCooldown <= 0 && player.stamina > PLAYER.staminaSlideCost) {
-        // Closer + higher press intensity ⇒ more likely to commit to a slide.
+        // A slide is a committed, occasional gamble — defenders mostly contain and only
+        // lunge now and then (this is re-evaluated each AI decision, ~every 0.2s, so the
+        // per-decision chance is kept low to avoid a slide-spam → foul-spam loop).
         const proximity = clamp01((player.radius + owner.radius + 12 - gap) / (player.radius + owner.radius + 12));
-        const slideChance = pressIntensity * (0.35 + 0.45 * proximity) * 0.5;
+        // Prefer to slide when the carrier is escaping (moving away) rather than face-up.
+        const carrierSpeed = Math.hypot(owner.velocity.x, owner.velocity.y);
+        const escaping = carrierSpeed > 0.45 * owner.maxSpeed ? 1 : 0.5;
+        const slideChance = pressIntensity * (0.05 + 0.09 * proximity) * escaping;
         if (world.rng.chance(slideChance)) {
           executeSlide(world, player.id);
         }

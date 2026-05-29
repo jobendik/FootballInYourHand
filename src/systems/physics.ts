@@ -511,6 +511,9 @@ function arbitrateSlides(world: GameWorld): void {
     const slider = players[i];
     if (slider.sentOff) continue;
     if (slider.slideTimer <= 0) continue;
+    // Each slide is arbitrated ONCE, at first body contact — not every frame it overlaps.
+    // (Rolling per-frame compounded a modest chance into a near-certain foul on every slide.)
+    if (slider.slideResolved) continue;
 
     const sliderSpeed = length(slider.velocity);
     const ballOwnedBySlider = ball.owner === slider.id;
@@ -523,6 +526,9 @@ function arbitrateSlides(world: GameWorld): void {
       if (victim.side === slider.side) continue;
       // Body contact within the slide steal radius.
       if (dist(victim.position, slider.position) > TACKLE.slideStealRadius) continue;
+
+      // First contact of this slide: arbitrate exactly once, whatever the outcome.
+      slider.slideResolved = true;
 
       // Did the slider come into the back of the victim?
       const sliderDir = normalize(slider.velocity);
@@ -558,7 +564,9 @@ function arbitrateSlides(world: GameWorld): void {
         });
         return; // Only one foul per frame.
       }
-      // No foul: if the slider won the ball cleanly it is captured by the loose-ball logic.
+      // No foul: the slide is still resolved (one decision per slide). If it won the ball,
+      // the loose-ball capture logic hands it over. Stop checking further victims this slide.
+      break;
     }
   }
 }

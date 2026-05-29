@@ -172,6 +172,8 @@ export interface Player {
 
   // Timers (seconds)
   slideTimer: number; // > 0 while a slide tackle is in progress
+  /** True once the current slide has been arbitrated for a foul (one decision per slide). */
+  slideResolved: boolean;
   kickCooldown: number; // brief no-recapture window after kicking
   actionCooldown: number; // generic per-player action gate
   stunTimer: number; // knocked down after a foul/collision

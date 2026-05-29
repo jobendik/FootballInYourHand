@@ -284,6 +284,7 @@ export function executeSlide(world: GameWorld, playerId: string): void {
   if (!p || p.slideTimer > 0) return;
 
   p.slideTimer = TACKLE.slideDuration;
+  p.slideResolved = false; // this slide's foul check has not happened yet
   const lunge = fromAngle(p.facing);
   p.velocity = add(p.velocity, scale(lunge, TACKLE.slideLungeSpeed));
   p.stamina = Math.max(0, p.stamina - PLAYER.staminaSlideCost);

@@ -372,14 +372,33 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: GameWorld, t: ViewTran
   const bodyH = 13 * u;
   const legLen = 7.5 * u;
 
-  // Active-player ring at the feet.
+  // Team ground marker — a filled disc in the team colour beneath every player. This makes
+  // the two sides instantly distinguishable at a glance, regardless of how close the kits are.
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = kit.primary;
+  ctx.beginPath();
+  ctx.ellipse(sc.x, sc.y + 3 * u, headR * 0.95, headR * 0.95 * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = Math.max(1, 1.4 * u);
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.stroke();
+  ctx.restore();
+
+  // Active-player ring at the feet — bright white halo so the controlled player stands out
+  // from team-mates that share the team colour.
   if (isActive) {
     ctx.save();
-    ctx.lineWidth = Math.max(2, 2.2 * u);
-    ctx.strokeStyle = COL.userRing;
-    ctx.globalAlpha = 0.9;
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = Math.max(2.5, 3 * u);
+    ctx.strokeStyle = '#ffffff';
     ctx.beginPath();
-    ctx.ellipse(sc.x, sc.y + 2 * u, (headR + 6 * u), (headR + 6 * u) * 0.55, 0, 0, Math.PI * 2);
+    ctx.ellipse(sc.x, sc.y + 3 * u, headR + 7 * u, (headR + 7 * u) * 0.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(1.5, 1.6 * u);
+    ctx.strokeStyle = COL.userRing;
+    ctx.beginPath();
+    ctx.ellipse(sc.x, sc.y + 3 * u, headR + 5 * u, (headR + 5 * u) * 0.5, 0, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
